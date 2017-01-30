@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <TextView
+        android:text="DAY\n42"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/dayBadge"
+        tools:text="MAR\n25"
+        android:textAlignment="center"
+        android:padding="8dp"
+        android:background="@drawable/mr_dialog_material_background_dark"
+        android:textColor="@color/common_google_signin_btn_text_dark_default"
+        android:layout_margin="8dp"
+        android:gravity="top" />
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:baselineAligned="false">
+
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1">
+
+                <TextView
+                    android:id="@+id/content"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?attr/textAppearanceListItem"
+                    tools:text="Filename (date?)"
+                    android:textStyle="normal|bold"
+                    android:textAllCaps="false"
+                    android:layout_marginLeft="8dp"
+                    android:layout_marginTop="8dp" />
+
+                <TextView
+                    android:id="@+id/details"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?attr/textAppearanceListItem"
+                    tools:text="Heure ? Taille ? Durée ?"
+                    android:layout_marginLeft="8dp"
+                    android:layout_marginBottom="@dimen/text_margin"
+                    android:maxLines="1"
+                    android:text="What?" />
+
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="0">
+                <Button
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:drawableLeft="@drawable/ic_play_light"
+                    android:id="@+id/playFileButton"
+                    style="@android:style/Widget.Holo.Button.Borderless.Small"
+                    android:scaleX="0.7"
+                    android:scaleY="0.7" />
+
+                <Button
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:drawableLeft="@drawable/ic_menu_share"
+                    android:id="@+id/shareFileButton"
+                    style="@android:style/Widget.DeviceDefault.Button.Borderless.Small" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:srcCompat="@color/place_autocomplete_separator"
+            android:id="@+id/imageView2" />
+
+    </LinearLayout>
+
+</LinearLayout>
