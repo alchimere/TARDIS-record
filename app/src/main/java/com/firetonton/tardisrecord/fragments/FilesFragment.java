@@ -70,8 +70,6 @@ public class FilesFragment extends Fragment {
                             }
                         });
                     }
-                    else
-                        getActivity().findViewById(R.id.playerLayout).setVisibility(View.GONE);
                     break;
             }
         }
