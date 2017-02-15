@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
@@ -19,6 +20,7 @@ import android.preference.PreferenceManager;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuInflater;
@@ -28,13 +30,16 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
+import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.firetonton.tardisrecord.helpers.IFabClickable;
 import com.firetonton.tardisrecord.R;
 import com.firetonton.tardisrecord.SettingsActivity;
 
 import com.firetonton.tardisrecord.services.RecordService;
+import com.triggertrap.seekarc.SeekArc;
 
 public class RecordFragment extends Fragment
         implements IFabClickable {
@@ -50,6 +55,7 @@ public class RecordFragment extends Fragment
      */
     boolean mBound;
     int mTest;
+    private long mLastProgress = 0;
 
     BroadcastReceiver mServiceReceiver = new BroadcastReceiver() {
         @Override
@@ -57,15 +63,21 @@ public class RecordFragment extends Fragment
             long nb = intent.getLongExtra(Intent.EXTRA_TEXT, -1);
             Log.d("onReceive", "receiving");
             updateProgression(nb);
+            RecordFragment.super.getActivity().findViewById(R.id.buttonStart)
+                    .setVisibility(View.GONE);
+            RecordFragment.super.getActivity().findViewById(R.id.buttonStop)
+                    .setVisibility(View.VISIBLE);
         }
     };
 
     private void updateProgression(long nb) {
-        ProgressBar progressBar = (ProgressBar) super.getActivity().findViewById(R.id.progressBar);
+        SeekArc progressBar = (SeekArc) super.getActivity().findViewById(R.id.progressBar);
         int maxProgress = progressBar.getMax();
 
         if (nb > maxProgress)
             nb = maxProgress;
+
+        mLastProgress = nb;
 
         TextView text = (TextView) super.getActivity().findViewById(R.id.textViewDuration);
         if (nb > 0)
@@ -74,6 +86,14 @@ public class RecordFragment extends Fragment
             text.setText("--'--\"");
 
         progressBar.setProgress((int) nb);
+
+        SeekArc seekBar = (SeekArc) super.getActivity().findViewById(R.id.seekBar);
+        if (nb <= 0)
+            seekBar.setMax(1); // Set 1 because 0 is buggy
+        else
+            seekBar.setMax((int) nb);
+
+        seekBar.setSweepAngle((int) progressBar.getProgressSweepAngle());
     }
 
     /**
@@ -106,96 +126,138 @@ public class RecordFragment extends Fragment
         Button button_one_min = (Button) llLayout.findViewById(R.id.button);
         button_one_min.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
-                if (!mBound) return;
-
-                // Create and send a message to the service, using a supported 'what' value
-                Message msg = Message.obtain(null, 42, 60, 0); // TODO what
-                try {
-                    mService.send(msg);
-                } catch (RemoteException e) {
-                    e.printStackTrace();
-                }
-                Snackbar.make(v, "Sauvegarde d'1m", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
+            public void onClick(View v) { saveNSeconds(60, v); }
         });
 
         Button button_two_min = (Button) llLayout.findViewById(R.id.button2);
         button_two_min.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
-                if (!mBound) return;
-
-                // Create and send a message to the service, using a supported 'what' value
-                Message msg = Message.obtain(null, 42, 3 * 60, 0); // TODO what
-                try {
-                    mService.send(msg);
-                } catch (RemoteException e) {
-                    e.printStackTrace();
-                }
-            }
+            public void onClick(View v) { saveNSeconds(3 * 60, v); }
         });
 
         Button button_three_min = (Button) llLayout.findViewById(R.id.button3);
         button_three_min.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
-                if (!mBound) return;
-
-                // Create and send a message to the service, using a supported 'what' value
-                Message msg = Message.obtain(null, 42, 5 * 60, 0); // TODO what
-                try {
-                    mService.send(msg);
-                } catch (RemoteException e) {
-                    e.printStackTrace();
-                }
-            }
+            public void onClick(View v) { saveNSeconds(5 * 60, v); }
         });
 
         Button button_stop = (Button) llLayout.findViewById(R.id.buttonStop);
         button_stop.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
-                doStopService();
-            }
+            public void onClick(View v) { doStopService(); }
+        });
+        Button button_start = (Button) llLayout.findViewById(R.id.buttonStart);
+        button_start.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) { onStartService(v); }
         });
 
 
-        ProgressBar progressBar = (ProgressBar) llLayout.findViewById(R.id.progressBar);
+        SeekArc progressBar = (SeekArc) llLayout.findViewById(R.id.progressBar);
         progressBar.setMax(MAX_SAVABLE_DURATION);
+        progressBar.setEnabled(false);
+
+        SeekArc seekBar = (SeekArc) llLayout.findViewById(R.id.seekBar);
+        seekBar.setMax(1); // Set 1 because 0 is buggy
+        seekBar.setProgress(0);
+        seekBar.setOnSeekArcChangeListener(new SeekArc.OnSeekArcChangeListener() {
+            @Override
+            public void onProgressChanged(SeekArc seekArc, int i, boolean requestedByUser) {
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekArc seekArc) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(final SeekArc seekArc) {
+                final int progress = seekArc.getProgress();
+                if (progress > 0) {
+                    new AlertDialog.Builder(getContext())
+                            .setTitle("Capture")
+                            .setMessage("Enregistrer les " + progress + " dernières secondes ?")
+//                        .setIcon(android.R.drawable.ic_dialog_)
+                            .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+
+                                public void onClick(DialogInterface dialog, int whichButton) {
+                                    seekArc.setProgress(0);
+                                    Toast.makeText(RecordFragment.this.getActivity(), "Record " + progress + "s", Toast.LENGTH_SHORT).show();
+                                    saveNSeconds(progress, RecordFragment.this.getView());
+                                }
+                            })
+                            .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    seekArc.setProgress(0);
+                                }
+                            }).show();
+                }
+            }
+        });
 
         return llLayout;
     }
 
+    private void saveNSeconds(int nbSeconds, View v) {
+        if (!mBound) {
+            Log.e("SaveNSeconds", "Service not bound");
+            return;
+        }
+
+        // Create and send a message to the service, using a supported 'what' value
+        Message msg = Message.obtain(null, 42, nbSeconds, 0); // TODO what
+        try {
+            mService.send(msg);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+        Snackbar.make(v, "Sauvegarde de "+nbSeconds+"s", Snackbar.LENGTH_LONG)
+                .setAction("Action", null).show();
+    }
+
     public void onFabClick(View view) {
-                Snackbar.make(view, "Enregistrement démarré", Snackbar.LENGTH_LONG)
-                        .show();
-                // Check for permissions
-                int permission = ActivityCompat.checkSelfPermission(getActivity(),
-                        Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        onStartService(view);
+    }
 
-                if (permission == PackageManager.PERMISSION_GRANTED) {
-                    permission = ActivityCompat.checkSelfPermission(getActivity(),
-                            Manifest.permission.RECORD_AUDIO);
-                }
+    public void onStartService(View view) {
+        Snackbar.make(view, "Enregistrement démarré", Snackbar.LENGTH_LONG)
+                .show();
+        if (checkPermissions())
+            doStartService();
+        else
+            Snackbar.make(view, "Permission refusée", Snackbar.LENGTH_LONG)
+                    .show();
+    }
 
-                // If we don't have permissions, ask user for permissions
-                if (permission != PackageManager.PERMISSION_GRANTED) {
-                    String[] PERMISSIONS_STORAGE = {
-                            Manifest.permission.READ_EXTERNAL_STORAGE,
-                            Manifest.permission.RECORD_AUDIO,
-                            Manifest.permission.WRITE_EXTERNAL_STORAGE
-                    };
-                    int REQUEST_EXTERNAL_STORAGE = 1;
+    private boolean checkPermissions() {
+        // Check for permissions
+        int permission = ActivityCompat.checkSelfPermission(getActivity(),
+                Manifest.permission.WRITE_EXTERNAL_STORAGE);
 
-                    ActivityCompat.requestPermissions(
-                            getActivity(),
-                            PERMISSIONS_STORAGE,
-                            REQUEST_EXTERNAL_STORAGE
-                    );
-                }
-                doStartService();
+        if (permission == PackageManager.PERMISSION_GRANTED) {
+            permission = ActivityCompat.checkSelfPermission(getActivity(),
+                    Manifest.permission.RECORD_AUDIO);
+        }
+
+        // If we don't have permissions, ask user for permissions
+        if (permission != PackageManager.PERMISSION_GRANTED) {
+            String[] PERMISSIONS_STORAGE = {
+                    Manifest.permission.READ_EXTERNAL_STORAGE,
+                    Manifest.permission.RECORD_AUDIO,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE
+            };
+            int REQUEST_EXTERNAL_STORAGE = 1;
+
+            ActivityCompat.requestPermissions(
+                    getActivity(),
+                    PERMISSIONS_STORAGE,
+                    REQUEST_EXTERNAL_STORAGE
+            );
+
+            return false;
+        }
+        return true;
     }
 
     @Override
@@ -208,12 +270,19 @@ public class RecordFragment extends Fragment
         updateProgression(0);
         IntentFilter intentFilter = new IntentFilter("plop");
         getActivity().registerReceiver(mServiceReceiver, intentFilter);
+        if (!mBound)
+            getActivity().bindService(new Intent(getActivity(), RecordService.class), mConnection,
+                    Context.BIND_AUTO_CREATE);
     }
 
     public void onPause() {
         super.onPause();
         if (mServiceReceiver != null)
             getActivity().unregisterReceiver(mServiceReceiver);
+        if (mBound) {
+            getActivity().unbindService(mConnection);
+            mBound = false;
+        }
     }
 
     private void doStartService() {
@@ -244,6 +313,9 @@ public class RecordFragment extends Fragment
         }
         getActivity().stopService(recordService);
         updateProgression(0);
+
+        super.getActivity().findViewById(R.id.buttonStart).setVisibility(View.VISIBLE);
+        super.getActivity().findViewById(R.id.buttonStop).setVisibility(View.GONE);
     }
 
     @Override

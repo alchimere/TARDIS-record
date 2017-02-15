@@ -76,7 +76,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        /*FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -84,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        updateFab(mViewPager.getCurrentItem());
+        updateFab(mViewPager.getCurrentItem());*/
     }
 
     @Override
@@ -106,14 +106,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void updateFab(int position) {
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        /*FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         if (position == 0)
             fab.show();
         else
             fab.hide();
         Fragment f = mSectionsPagerAdapter.getItem(position);
         if (f instanceof IFabClickable)
-            fab.setImageResource(((IFabClickable) f).getDrawableID());
+            fab.setImageResource(((IFabClickable) f).getDrawableID());*/
     }
 
     private void onFabClicked(View view) {

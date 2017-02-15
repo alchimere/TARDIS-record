@@ -12,4 +12,6 @@
     <color name="colorSecondaryText">#757575</color>
     <color name="colorIcons">#FFFFFF</color>
     <color name="colorDivider">#BDBDBD</color>
+
+    <color name="colorTranparent">#00000000</color>
 </resources>
