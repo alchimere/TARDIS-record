@@ -23,21 +23,18 @@ import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
-import android.view.Menu;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
-import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.firetonton.tardisrecord.helpers.IFabClickable;
 import com.firetonton.tardisrecord.R;
 import com.firetonton.tardisrecord.SettingsActivity;
-
+import com.firetonton.tardisrecord.helpers.IFabClickable;
 import com.firetonton.tardisrecord.services.RecordService;
 import com.triggertrap.seekarc.SeekArc;
 
@@ -55,7 +52,6 @@ public class RecordFragment extends Fragment
      */
     boolean mBound;
     int mTest;
-    private long mLastProgress = 0;
 
     BroadcastReceiver mServiceReceiver = new BroadcastReceiver() {
         @Override
@@ -76,8 +72,6 @@ public class RecordFragment extends Fragment
 
         if (nb > maxProgress)
             nb = maxProgress;
-
-        mLastProgress = nb;
 
         TextView text = (TextView) super.getActivity().findViewById(R.id.textViewDuration);
         if (nb > 0)
@@ -122,24 +116,6 @@ public class RecordFragment extends Fragment
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         RelativeLayout llLayout = (RelativeLayout) inflater.inflate(R.layout.content_main, container, false);
         mTest = 42;
-
-        Button button_one_min = (Button) llLayout.findViewById(R.id.button);
-        button_one_min.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) { saveNSeconds(60, v); }
-        });
-
-        Button button_two_min = (Button) llLayout.findViewById(R.id.button2);
-        button_two_min.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) { saveNSeconds(3 * 60, v); }
-        });
-
-        Button button_three_min = (Button) llLayout.findViewById(R.id.button3);
-        button_three_min.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) { saveNSeconds(5 * 60, v); }
-        });
 
         Button button_stop = (Button) llLayout.findViewById(R.id.buttonStop);
         button_stop.setOnClickListener(new View.OnClickListener() {
