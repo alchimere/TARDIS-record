@@ -13,8 +13,8 @@
         tools:text="MAR\n25"
         android:textAlignment="center"
         android:padding="8dp"
-        android:background="@drawable/mr_dialog_material_background_dark"
-        android:textColor="@color/common_google_signin_btn_text_dark_default"
+        android:background="@android:drawable/screen_background_dark"
+        android:textColor="@android:color/white"
         android:layout_margin="8dp"
         android:gravity="top" />
 
@@ -65,14 +65,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:layout_weight="0">
-                <Button
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:drawableLeft="@drawable/ic_play_light"
-                    android:id="@+id/playFileButton"
-                    style="@android:style/Widget.Holo.Button.Borderless.Small"
-                    android:scaleX="0.7"
-                    android:scaleY="0.7" />
 
                 <Button
                     android:layout_width="wrap_content"
@@ -88,7 +80,7 @@
         <ImageView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:srcCompat="@color/place_autocomplete_separator"
+            app:srcCompat="@color/colorDivider"
             android:id="@+id/imageView2" />
 
     </LinearLayout>

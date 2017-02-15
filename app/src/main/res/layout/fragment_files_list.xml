@@ -12,16 +12,16 @@
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:visibility="gone"
+        android:visibility="visible"
         android:background="@color/colorPrimary">
 
         <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
             android:layout_weight="0"
             android:id="@+id/buttonStop"
-            android:drawableLeft="@drawable/cast_ic_expanded_controller_stop"
-            style="@android:style/Widget.DeviceDefault.Button.Borderless.Small"/>
+            android:background="@mipmap/stop"
+            android:layout_margin="10dp"
+            android:layout_height="40dp"
+            android:layout_width="40dp" />
 
         <SeekBar
             android:layout_width="wrap_content"
@@ -34,7 +34,7 @@
         <TextView
             android:text="--:--"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_weight="0"
             android:id="@+id/playTimestamp"
             android:gravity="right|center_vertical"

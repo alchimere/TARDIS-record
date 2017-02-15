@@ -16,6 +16,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
@@ -158,6 +159,17 @@ public class FilesFragment extends Fragment {
                         recyclerView.setAdapter(new MyFilesRecyclerViewAdapter(mItems, mListener));
                     }
                 });
+            }
+        });
+
+        Button stop_btn = (Button) view.findViewById(R.id.buttonStop);
+        stop_btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (mPlayer != null && mPlayer.isPlaying()) {
+                    mPlayer.stop();
+                    updatePlayerBar();
+                }
             }
         });
 
