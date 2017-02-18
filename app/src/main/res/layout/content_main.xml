@@ -96,6 +96,15 @@
             android:visibility="gone"
             style="@style/Widget.AppCompat.Button.Colored"/>
 
+        <TextView
+            android:text="RAM: 42Mo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/textViewRAM"
+            android:maxLines="1"
+            android:textAlignment="center"
+            android:layout_alignParentTop="true"/>
+
     </LinearLayout>
 
 

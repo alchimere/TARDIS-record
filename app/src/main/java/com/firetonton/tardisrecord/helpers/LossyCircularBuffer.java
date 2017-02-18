@@ -66,6 +66,7 @@ public class LossyCircularBuffer {
                 "mFilledSize: " + mFilledSize);
     }
 
+    /* Method 1 - Must allocate big buffer */
     public synchronized byte[] copyLastBytes(int nbBytes) {
         if (nbBytes > mFilledSize)
             nbBytes = mFilledSize;
@@ -75,5 +76,31 @@ public class LossyCircularBuffer {
             result[i] = mArray[(posStart + i) % mArraySize];
         }
         return result;
+    }
+
+    /* Method 2 - Don't release lock until method end */
+    public interface BufferPartHandler {
+        void onCopyBufferPart(byte[] bufferPart, int bufferSize);
+    }
+
+    public synchronized void forEachLastBytes(int nbBytes, int buffSize, BufferPartHandler handler) {
+        if (nbBytes > mFilledSize)
+            nbBytes = mFilledSize;
+        byte buff[] = new byte[buffSize];
+        int nbFullBuffers = nbBytes / buffSize;
+        int posStart = mPosStart + mFilledSize - nbBytes;
+
+        // Copy each full buffer
+        for (int n = 0; n < nbFullBuffers; n++) {
+            for (int i = 0; i < buffSize; i++)
+                buff[i] = mArray[(posStart + n * buffSize + i) % mArraySize];
+            handler.onCopyBufferPart(buff, buffSize);
+        }
+
+        if (nbBytes % buffSize > 0) {
+            for (int i = 0; i < nbBytes % buffSize; i++)
+                buff[i] = mArray[(posStart + nbFullBuffers * buffSize + i) % mArraySize];
+            handler.onCopyBufferPart(buff, nbBytes % buffSize);
+        }
     }
 }

@@ -41,7 +41,7 @@ import com.triggertrap.seekarc.SeekArc;
 public class RecordFragment extends Fragment
         implements IFabClickable {
 
-    private static final int MAX_SAVABLE_DURATION = 15 * 60;
+    private static final int MAX_SAVABLE_DURATION = 30 * 60;
     /**
      * Messenger for communicating with the service.
      */

@@ -3,8 +3,10 @@ package com.firetonton.tardisrecord.helpers;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
+import android.media.audiofx.NoiseSuppressor;
 import android.os.Environment;
 import android.os.Looper;
+import android.util.Log;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -21,14 +23,20 @@ import com.firetonton.tardisrecord.helpers.LossyCircularBuffer;
 
 public class CircleAudioRecorder {
     private static final int SAMPLE_RATE = 22100;
-    private static final int BITS_PER_SAMPLE = 8;
+    private static final int BITS_PER_SAMPLE = 16;
     private AudioRecord ar = null;
     private int mBuffsize = 0;
     private LossyCircularBuffer mCircBuf;
 
     /* Parameters */
-    private int mAudioSource = MediaRecorder.AudioSource.MIC;
-    public int mCircBufferSize = 42 * 1024 * 1024; // 42 Mo (~33min)
+    private int mAudioSource = MediaRecorder.AudioSource.VOICE_RECOGNITION;
+    //        int myBitsPerSample= 16;
+//        int myFormat = 1;
+//        long myChannels = 1;
+//        long mySampleRate = 22100;
+//        long myByteRate = mySampleRate * myChannels * myBitsPerSample/8;
+    public int mCircBufferSize = (SAMPLE_RATE * 1 * 16 / 8) * (30 * 60); // byterate * 15min
+    //public int mCircBufferSize = 42 * 1024 * 1024; // 42 Mo (~33min)
 
     private boolean isRecording = false;
     private Thread recordingThread = null;
@@ -60,9 +68,12 @@ public class CircleAudioRecorder {
                 mAudioSource,
                 SAMPLE_RATE,
                 AudioFormat.CHANNEL_IN_MONO,
-                AudioFormat.ENCODING_PCM_8BIT,
+                AudioFormat.ENCODING_PCM_16BIT,
                 mBuffsize
         );
+
+        // if (NoiseSuppressor.isAvailable())
+        //     NoiseSuppressor.create(ar.getAudioSessionId());
 
         ar.startRecording();
 
@@ -79,7 +90,16 @@ public class CircleAudioRecorder {
 
     private void doRecord() {
         byte bData[] = new byte[mBuffsize];
-        mCircBuf = new LossyCircularBuffer(mCircBufferSize);
+
+        /* Calc max memory available */
+        Runtime rt = Runtime.getRuntime();
+        int maxMemory = (int)(rt.maxMemory() * 0.8); // Take maximum 80% of max memory
+        Log.v("doRecord", "maxMemory: " + maxMemory);
+        /* ************************* */
+
+        int circBufSize = Math.min(mCircBufferSize, maxMemory);
+        Log.v("doRecord", "circBufSize: " + circBufSize);
+        mCircBuf = new LossyCircularBuffer(circBufSize);
 
         long startTime = System.currentTimeMillis();
         int bps = calcBytePerSecond();
@@ -108,7 +128,31 @@ public class CircleAudioRecorder {
     }
 
     public void writeLastNSecondsToFile(int duration, String filePath) throws IOException {
-        writeBufferToAudioFile(mCircBuf.copyLastBytes(getByteSizeForDuration(duration)), filePath);
+        //writeBufferToAudioFile(mCircBuf.copyLastBytes(getByteSizeForDuration(duration)), filePath);
+
+        if (filePath == null)
+            filePath = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator
+                    + "TardisRecord/voice8K16bitmono-"+System.currentTimeMillis()+".wav";
+
+        int dataLength = getByteSizeForDuration(duration);
+        if (mCircBuf.getLength() < dataLength)
+            dataLength = mCircBuf.getLength();
+
+        byte bHeader[] = getWAVHeader(dataLength, SAMPLE_RATE, BITS_PER_SAMPLE);
+        final FileOutputStream os = new FileOutputStream(filePath);
+
+        os.write(bHeader, 0, bHeader.length);
+        mCircBuf.forEachLastBytes(dataLength, 100 * 1024, new LossyCircularBuffer.BufferPartHandler() {
+            @Override
+            public void onCopyBufferPart(byte[] bufferPart, int bufferSize) {
+                try {
+                    Log.d("WRITE", "Writing "+bufferSize+" bytes");
+                    os.write(bufferPart, 0, bufferSize);
+                } catch (IOException e) {
+                    e.printStackTrace(); // ?
+                }
+            }
+        });
     }
 
     private int getByteSizeForDuration(int duration) {
@@ -137,7 +181,7 @@ public class CircleAudioRecorder {
         os.write(bData, 0, bData.length);
     }
 
-    int calcBytePerSecond() {
+    private int calcBytePerSecond() {
         int sampleRate = SAMPLE_RATE;
         int nbChannels = 1;
         int bitsPerSample = BITS_PER_SAMPLE;
