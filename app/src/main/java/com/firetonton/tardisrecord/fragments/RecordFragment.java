@@ -74,8 +74,9 @@ public class RecordFragment extends Fragment
             nb = maxProgress;
 
         TextView text = (TextView) super.getActivity().findViewById(R.id.textViewDuration);
-        if (nb > 0)
-            text.setText(""+(nb / 60)+"'"+(nb % 60)+"\"");
+        if (nb > 0) {
+            text.setText("" + (nb / 60) + "'" + (nb % 60) + "\"");
+        }
         else
             text.setText("--'--\"");
 
@@ -88,6 +89,16 @@ public class RecordFragment extends Fragment
             seekBar.setMax((int) nb);
 
         seekBar.setSweepAngle((int) progressBar.getProgressSweepAngle());
+        if (nb == 0) {
+            seekBar.setVisibility(View.INVISIBLE);
+            super.getActivity().findViewById(R.id.textInfoHelp)
+                    .setVisibility(View.INVISIBLE);
+        }
+        else {
+            seekBar.setVisibility(View.VISIBLE);
+            super.getActivity().findViewById(R.id.textInfoHelp)
+                    .setVisibility(View.VISIBLE);
+        }
     }
 
     /**
@@ -171,6 +182,14 @@ public class RecordFragment extends Fragment
                 }
             }
         });
+
+
+        int width = progressBar.getLayoutParams().width;
+//        int height = progressBar.getLayoutParams().height;
+//        progressBar.setLayoutParams(new RelativeLayout.LayoutParams(width, height < width ? height : width));
+//        seekBar.setLayoutParams(new RelativeLayout.LayoutParams(width, height < width ? height : width));
+        progressBar.setLayoutParams(new RelativeLayout.LayoutParams(width, width));
+        seekBar.setLayoutParams(new RelativeLayout.LayoutParams(width, width));
 
         return llLayout;
     }
