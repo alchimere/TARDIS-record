@@ -240,12 +240,16 @@ public class FilesFragment extends Fragment {
         String str = Environment.getExternalStorageDirectory().getAbsolutePath()
                 + File.separator + "TardisRecord";
         File folder = new File(str);
-        return folder.listFiles(new FilenameFilter() {
-            @Override
-            public boolean accept(File dir, String filename) {
-                return filename.startsWith("record-");
-            }
-        });
+        if (folder.exists() && folder.isDirectory()) {
+            return folder.listFiles(new FilenameFilter() {
+                @Override
+                public boolean accept(File dir, String filename) {
+                    return filename.startsWith("record-");
+                }
+            });
+        }
+
+        return new File[0];
     }
 
 

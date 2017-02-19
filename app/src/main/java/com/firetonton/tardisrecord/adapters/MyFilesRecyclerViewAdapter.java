@@ -4,7 +4,9 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 //import com.firetonton.tardisrecord.ItemFragment.OnListFragmentInteractionListener;
 import com.firetonton.tardisrecord.R;
@@ -58,6 +60,18 @@ public class MyFilesRecyclerViewAdapter extends RecyclerView.Adapter<MyFilesRecy
                     // Notify the active callbacks interface (the activity, if the
                     // fragment is attached to one) that an item has been selected.
                     mListener.onFilesFragmentInteraction(holder.mItem);
+                }
+            }
+        });
+        Button shareBtn = (Button) holder.mView.findViewById(R.id.shareFileButton);
+        shareBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (null != mListener) {
+                    // Notify the active callbacks interface (the activity, if the
+                    // fragment is attached to one) that an item has been selected.
+                    //mListener.onShareItem(holder.mItem);
+                    Toast.makeText(holder.mView.getContext(), "Partage à venir", Toast.LENGTH_SHORT).show();
                 }
             }
         });
